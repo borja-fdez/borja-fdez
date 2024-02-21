@@ -1,10 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borja Fernández de Alba</title>
+    <style>
+        body {
+            background-color: #A9A9A9; 
+            margin: 0; 
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; 
+            color: white; 
+        }
+
+        h1 {
+            font-family: "Terminal", monospace;
+            text-align: left; 
+            margin: 10px; 
+        }
+
+        .fila-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; 
+        }
+
+        .imagen-container {
+            margin-right: 3cm; 
+        }
+
+        .imagen {
+            width: 100px; 
+            height: 100px; 
+        }
+
+        .fila-inferior {
+            margin-top: 4cm; 
+        }
+
+        .imagen2 {
+            width: 60px; 
+            height: 60px;
+        }
+
+        .esquina-inferior-izquierda {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            margin: 5px;
+            width: 30px; 
+            height: 30px; 
+        }
+
+         .esquina-superior-derecha {
+            position: absolute;
+            right: 0;
+            top:0;
+            margin: 5px; 
+            font-family: "Terminal", monospace;
+	    font-size: 24px;
+        }
+    </style>
+</head>
 <body>
-
-<h1>Hello World</h1>
-
-<p>Here I am.</p>
-
+  
+    <p class="esquina-superior-derecha">borja fernández de alba</p>
+    <div class="fila-superior">
+        <div class="imagen-container"><a href="https://t.me/borjafac"><img src="telegram.png" alt="Telegram" class="imagen"></a></div>
+        <div class="imagen-container"><a href="mailto:borja.fdez@proton.me"><img src="mail.png" alt="mail" class="imagen"></a></div>
+        <div class="imagen-container"><a href="https://es.linkedin.com/in/borjafernandezdealba" target="_blank"><img src="linkedin.png" alt="LinkedIN" class="imagen"></a></div>
+    </div>
+    <div class="fila-inferior">
+         <div class="imagen-container"><a href="https://keys.openpgp.org/search?q=264E+2103+2EE3+58AE+2CC1+BA6F+FBA7+2017+4EA5+EF52" target="_blank"><img src="pgp.png" alt="OpenPGP" class="imagen2"></a></div>
+    </div>
+    <a href="checks.html" target="_blank"><img src="healthchecks.png" alt="Otra Imagen" class="esquina-inferior-izquierda"></a>
 </body>
 </html>
