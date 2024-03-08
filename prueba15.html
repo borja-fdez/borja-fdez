@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Response Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: center; /* Centra los títulos de las columnas */
+        }
+        td:nth-child(3), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8) {
+            text-align: center; /* Centra las columnas Status, Last Ping, Elapsed Time, Next Ping y Time Until Next Event */
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .status-up {
+            background-color: #4CAF50; /* Verde */
+            color: white;
+        }
+        .status-down {
+            background-color: #f44336; /* Rojo */
+            color: white;
+        }
+        .status-grace {
+            background-color: #FFA500; /* Naranja */
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>API Response Display</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Name</th>
+                <th>Status</th>
+                <th>Elapsed Time</th>
+                <th>Next Ping</th>
+                <th>Time Until Next Event</th>
+            </tr>
+        </thead>
+        <tbody id="jsonTableBody"></tbody>
+    </table>
+
+    <script>
+        function formatDate(dateString) {
+            var options = { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                timeZone: 'Europe/Madrid'
+            };
+
+            return new Date(dateString).toLocaleString('es-ES', options);
+        }
+
+        function formatElapsedTime(elapsedTime) {
+            var days = Math.floor(elapsedTime / (24 * 3600));
+            var hours = Math.floor((elapsedTime % (24 * 3600)) / 3600);
+            var minutes = Math.floor((elapsedTime % 3600) / 60);
+            var seconds = Math.floor(elapsedTime % 60);
+
+            var formattedTime = '';
+
+            if (days > 0) {
+                formattedTime += days + 'd ';
+            }
+
+            if (hours > 0 || days > 0) {
+                formattedTime += hours + 'h ';
+            }
+
+            if (minutes > 0 || hours > 0 || days > 0) {
+                formattedTime += minutes + 'm ';
+            }
+
+            // Muestra segundos solo si el tiempo es inferior a 1 hora
+            if (elapsedTime < 3600) {
+                formattedTime += seconds + 's';
+            }
+
+            return formattedTime.trim();
+        }
+
+        function formatTimeUntilNextEvent(timeUntilNextEvent) {
+            var days = Math.floor(timeUntilNextEvent / (24 * 3600));
+            var hours = Math.floor((timeUntilNextEvent % (24 * 3600)) / 3600);
+            var minutes = Math.floor((timeUntilNextEvent % 3600) / 60);
+            var seconds = Math.floor(timeUntilNextEvent % 60);
+
+            var formattedTime = '';
+
+            if (days > 0) {
+                formattedTime += days + 'd ';
+            }
+
+            if (hours > 0 || days > 0) {
+                formattedTime += hours + 'h ';
+            }
+
+            if (minutes > 0 || hours > 0 || days > 0) {
+                formattedTime += minutes + 'm ';
+            }
+
+            // Muestra segundos solo si el tiempo es inferior a 1 hora
+            if (timeUntilNextEvent < 3600) {
+                formattedTime += seconds + 's';
+            }
+
+            return formattedTime.trim();
+        }
+
+        function sortTable(columnIndex) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.querySelector("table");
+            switching = true;
+            
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                
+                for (i = 1; i < rows.length - 1; i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("td")[columnIndex];
+                    y = rows[i + 1].getElementsByTagName("td")[columnIndex];
+                    
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+
+        function fetchDataAndUpdateTable() {
+            var httpRequest = new XMLHttpRequest();
+            var key = "tkYKFVcRKTR5X8-j_UoYB7zAhz5uBuav"; // Reemplaza con tu clave de API real
+
+            httpRequest.onreadystatechange = function() {
+                if (httpRequest.readyState === 4 && httpRequest.status === 200) {
+                    var jsonData = JSON.parse(httpRequest.responseText);
+                    var tableBody = document.getElementById("jsonTableBody");
+                    tableBody.innerHTML = ''; // Limpia las filas existentes
+
+                    // Ordena el array por el nombre antes de mostrarlo
+                    jsonData.checks.sort(function(a, b) {
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    jsonData.checks.forEach(function(check) {
+                        var row = document.createElement("tr");
+
+                        var nameCell = document.createElement("td");
+                        nameCell.textContent = check.name;
+                        row.appendChild(nameCell);
+
+                        var statusCell = document.createElement("td");
+                        // Agrega clases según el estado
+                        if (check.status === 'up') {
+                            statusCell.classList.add('status-up');
+                        } else if (check.status === 'down') {
+                            statusCell.classList.add('status-down');
+                        } else if (check.status === 'grace') {
+                            statusCell.classList.add('status-grace');
+                        }
+                        row.appendChild(statusCell);
+
+                        // Celda para el tiempo transcurrido
+                        var elapsedTimeCell = document.createElement("td");
+                        elapsedTimeCell.textContent = check.last_ping ? formatElapsedTime((Date.now() - new Date(check.last_ping).getTime()) / 1000) : "N/A";
+                        row.appendChild(elapsedTimeCell);
+
+                        // Crea celdas para las fechas
+                        var lastPingCell = document.createElement("td");
+                        lastPingCell.textContent = check.last_ping ? formatDate(check.last_ping) : "N/A";
+                        row.appendChild(lastPingCell);
+
+                        var nextPingCell = document.createElement("td");
+                        nextPingCell.textContent = check.next_ping ? formatDate(check.next_ping) : "N/A";
+                        row.appendChild(nextPingCell);
+
+                        // Celda para el tiempo hasta el próximo evento
+                        var timeUntilNextEventCell = document.createElement("td");
+                        timeUntilNextEventCell.textContent = check.next_ping ? formatTimeUntilNextEvent((new Date(check.next_ping).getTime() - Date.now()) / 1000) : "N/A";
+                        row.appendChild(timeUntilNextEventCell);
+
+                        tableBody.appendChild(row);
+                    });
+                }
+            };
+
+            httpRequest.open("GET", "https://healthchecks.io/api/v3/checks/");
+            httpRequest.setRequestHeader("X-API-Key", key);
+            httpRequest.send();
+        }
+
+        // Obtiene y actualiza los datos inicialmente
+        fetchDataAndUpdateTable();
+
+        // Establece un intervalo para actualizar los datos cada 5 segundos
+        setInterval(fetchDataAndUpdateTable, 5000);
+    </script>
+
+</body>
+</html>
+
