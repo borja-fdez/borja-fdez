@@ -23,7 +23,7 @@
             padding: 5px;
             text-align: left;
             font-size: 12px;
-            white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+            white-space: nowrap;
         }
         th {
             background-color: #f2f2f2;
@@ -53,6 +53,24 @@
             background-color: #FFA500;
             color: white;
         }
+        .yesterday {
+            color: #FFA500;
+        }
+        .today {
+            color: #4CAF50;
+        }
+        .tomorrow {
+            color: #2196F3;
+        }
+        .running {
+            background-color: orange;
+            color: white;
+        }
+        note {
+            margin-top: 20px;
+            font-style: italic;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -63,16 +81,18 @@
         <thead>
             <tr>
                 <th onclick="sortTable(0)">Name</th>
+                <th>Next in:</th>
+                <th>Next check</th>
                 <th>Last was:</th>
                 <th>Last check</th>
-                <th>Next check</th>
-                <th>Next in:</th>
                 <th>#</th>
                 <th>Duration</th>
             </tr>
         </thead>
         <tbody id="jsonTableBody"></tbody>
     </table>
+    <note> <b><u>Note:</u></b> If the expected time between checks (check schedule, period) exceeds 300 days, <b>Next check</b> and <b>Next in</b> are <u>intentionally omitted</u>.</note>
+
 
     <script>
         function formatDate(dateString) {
@@ -118,6 +138,10 @@
         }
 
         function formatTimeUntilNextEvent(timeUntilNextEvent) {
+            if (timeUntilNextEvent <= 0) {
+                return "running";
+            }
+
             var days = Math.floor(timeUntilNextEvent / (24 * 3600));
             var hours = Math.floor((timeUntilNextEvent % (24 * 3600)) / 3600);
             var minutes = Math.floor((timeUntilNextEvent % 3600) / 60);
@@ -203,26 +227,64 @@
                         }
 
                         row.appendChild(nameCell);
+                        
+                        // Celdas de Next in y Next check van primero
+                        var nextCheckCell = document.createElement("td");
+                        var nextPingCell = document.createElement("td");
 
-                        // Celda para el tiempo transcurrido
+                        if (check.timeout && check.timeout > 300 * 24 * 3600) {
+                            // Si el period, check schedule es mayor que 300 días, no se muestra nada en estas celdas
+                            nextPingCell.textContent = " ";
+                            nextCheckCell.textContent = " ";
+                        } else {
+                            var nextPingDate = new Date(check.next_ping);
+                            var timeUntilNextEvent = (nextPingDate.getTime() - Date.now()) / 1000;
+                            nextPingCell.textContent = formatTimeUntilNextEvent(timeUntilNextEvent);
+                            
+                            // Reemplaza la fecha según las condiciones
+                            if (nextPingDate.toDateString() === new Date().toDateString()) {
+                                nextCheckCell.textContent = "Today " + nextPingDate.toLocaleTimeString();
+                            } else if (nextPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
+                                nextCheckCell.textContent = "Tomorrow " + nextPingDate.toLocaleTimeString();
+                            } else if (nextPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
+                                nextCheckCell.textContent = "Yesterday " + nextPingDate.toLocaleTimeString();
+                            } else {
+                                nextCheckCell.textContent = formatDate(check.next_ping);
+                            }
+
+                            // Añade la clase 'running' si el estado es 'running'
+                            if (check.status === 'running') {
+                                nextCheckCell.classList.add('running');
+                            }
+                        }
+
+                        row.appendChild(nextPingCell);
+                        row.appendChild(nextCheckCell);
+
+                        // Celda para el tiempo transcurrido (Last was)
                         var elapsedTimeCell = document.createElement("td");
                         elapsedTimeCell.textContent = check.last_ping ? formatElapsedTime((Date.now() - new Date(check.last_ping).getTime()) / 1000) : " ";
                         row.appendChild(elapsedTimeCell);
 
-                        // Celda centrada para la fecha Last Ping
+                        // Celda centrada para la fecha (Last check)
                         var lastPingCell = document.createElement("td");
-                        lastPingCell.textContent = check.last_ping ? formatDate(check.last_ping) : " ";
+                        var lastPingDate = check.last_ping ? new Date(check.last_ping) : null;
+
+                        // Reemplaza la fecha según las condiciones
+                        if (lastPingDate) {
+                            if (lastPingDate.toDateString() === new Date().toDateString()) {
+                                lastPingCell.textContent = "Today " + lastPingDate.toLocaleTimeString();
+                            } else if (lastPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
+                                lastPingCell.textContent = "Tomorrow " + lastPingDate.toLocaleTimeString();
+                            } else if (lastPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
+                                lastPingCell.textContent = "Yesterday " + lastPingDate.toLocaleTimeString();
+                            } else {
+                                lastPingCell.textContent = formatDate(check.last_ping);
+                            }
+                        }
+
                         lastPingCell.style.textAlign = "center"; // Centra el texto
                         row.appendChild(lastPingCell);
-
-                        var nextPingCell = document.createElement("td");
-                        nextPingCell.textContent = check.next_ping ? formatDate(check.next_ping) : " ";
-                        row.appendChild(nextPingCell);
-
-                        // Celda para el tiempo hasta el próximo evento
-                        var timeUntilNextEventCell = document.createElement("td");
-                        timeUntilNextEventCell.textContent = check.next_ping ? formatTimeUntilNextEvent((new Date(check.next_ping).getTime() - Date.now()) / 1000) : " ";
-                        row.appendChild(timeUntilNextEventCell);
 
                         // Celda para el número de pings
                         var numPingsCell = document.createElement("td");
