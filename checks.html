@@ -42,27 +42,14 @@
             overflow-x: auto;
         }
         .status-up {
-            background-color: #4CAF50;
+            background-color: #90ee90; // green
             color: white;
         }
         .status-down {
-            background-color: #f44336;
+            background-color: red;
             color: white;
         }
         .status-grace {
-            background-color: #FFA500;
-            color: white;
-        }
-        .yesterday {
-            color: #FFA500;
-        }
-        .today {
-            color: #4CAF50;
-        }
-        .tomorrow {
-            color: #2196F3;
-        }
-        .running {
             background-color: orange;
             color: white;
         }
@@ -76,6 +63,10 @@
 <body>
 
     <h1>Control Panel</h1>
+
+    <div id="horaActual" style="text-align: right; font-size: 14px; color: blue; font-weight: bold; margin-bottom: 10px;"></div>
+
+    <div id="textoIntervalo" style="font-size: 11px; text-align: right; color: #808080;"></div>
 
     <table id="dataTable">
         <thead>
@@ -95,6 +86,12 @@
 
 
     <script>
+
+        var intervalo_refresco = 5000;  // indicar aqui el intervalo de refresco de los datos que se desea (recomendable no inferior a 5 segundos)
+        var intervaloEnSegundos = intervalo_refresco / 1000;
+        var textoIntervalo = document.getElementById('textoIntervalo');
+        textoIntervalo.textContent = 'Information updated every ' + intervaloEnSegundos + ' seconds';
+
         function formatDate(dateString) {
             var options = { 
                 day: '2-digit', 
@@ -138,10 +135,7 @@
         }
 
         function formatTimeUntilNextEvent(timeUntilNextEvent) {
-            if (timeUntilNextEvent <= 0) {
-                return "running";
-            }
-
+            
             var days = Math.floor(timeUntilNextEvent / (24 * 3600));
             var hours = Math.floor((timeUntilNextEvent % (24 * 3600)) / 3600);
             var minutes = Math.floor((timeUntilNextEvent % 3600) / 60);
@@ -243,18 +237,27 @@
                             
                             // Reemplaza la fecha según las condiciones
                             if (nextPingDate.toDateString() === new Date().toDateString()) {
-                                nextCheckCell.textContent = "Today " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Today, " + nextPingDate.toLocaleTimeString();
                             } else if (nextPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
-                                nextCheckCell.textContent = "Tomorrow " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Tomorrow, " + nextPingDate.toLocaleTimeString();
                             } else if (nextPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
-                                nextCheckCell.textContent = "Yesterday " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Yesterday, " + nextPingDate.toLocaleTimeString();
                             } else {
                                 nextCheckCell.textContent = formatDate(check.next_ping);
                             }
-
-                            // Añade la clase 'running' si el estado es 'running'
-                            if (check.status === 'running') {
-                                nextCheckCell.classList.add('running');
+                            // Si el status en down, para que no aparezca una fecha tipo 1/1/1970 en Next Check, lo dejo en blanco y pinto de rojo
+                            if (check.status === 'down') {
+                               nextCheckCell.textContent = " ";
+                               nextCheckCell.classList.add('status-down');
+                            }
+                            // Colorea en naranja la columna "Next in" si está en estado grace y en rojo y escribe down si está en estado down
+                            if (check.status === 'grace') {
+                                nextPingCell.classList.add('status-grace');
+                                nextPingCell.textContent = " ";
+                            }
+                               if (check.status === 'down') {
+                                nextPingCell.classList.add('status-down');
+                                nextPingCell.textContent = "down";
                             }
                         }
 
@@ -273,11 +276,11 @@
                         // Reemplaza la fecha según las condiciones
                         if (lastPingDate) {
                             if (lastPingDate.toDateString() === new Date().toDateString()) {
-                                lastPingCell.textContent = "Today " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Today, " + lastPingDate.toLocaleTimeString();
                             } else if (lastPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
-                                lastPingCell.textContent = "Tomorrow " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Tomorrow, " + lastPingDate.toLocaleTimeString();
                             } else if (lastPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
-                                lastPingCell.textContent = "Yesterday " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Yesterday, " + lastPingDate.toLocaleTimeString();
                             } else {
                                 lastPingCell.textContent = formatDate(check.last_ping);
                             }
@@ -301,16 +304,27 @@
                 }
             };
 
+
             httpRequest.open("GET", "https://healthchecks.io/api/v3/checks/");
             httpRequest.setRequestHeader("X-API-Key", key);
             httpRequest.send();
         }
 
+        function mostrarHoraActual() {
+            var horaActualElemento = document.getElementById("horaActual");
+            var horaActual = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            horaActualElemento.textContent = "Time: " + horaActual;
+        }
+
+        // Muestra la hora actual inicialmente
+        mostrarHoraActual();
+
         // Obtiene y actualiza los datos inicialmente
         fetchDataAndUpdateTable();
 
-        // Establece un intervalo para actualizar los datos cada 5 segundos
-        setInterval(fetchDataAndUpdateTable, 5000);
+        // Establece un intervalo para actualizar los datos cada x segundos definidos en intervalo refresco
+        setInterval(fetchDataAndUpdateTable, intervalo_refresco);
+        setInterval(mostrarHoraActual, intervalo_refresco);
     </script>
 
 </body>
