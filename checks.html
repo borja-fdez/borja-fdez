@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Panel</title>
+    <title>HealthChecks.io dashboard</title>
     <style>
         body {
             font-family: 'Aptos', 'Helvetica Neue', Arial, sans-serif;
@@ -42,7 +42,7 @@
             overflow-x: auto;
         }
         .status-up {
-            background-color: #90ee90; // green
+            background-color: #90ee90; /* light green */
             color: white;
         }
         .status-down {
@@ -62,16 +62,27 @@
 </head>
 <body>
 
-    <h1>Control Panel</h1>
+    <h1>HealthChecks.io dashboard</h1>
 
-    <div id="horaActual" style="text-align: right; font-size: 14px; color: blue; font-weight: bold; margin-bottom: 10px;"></div>
+    <div id="currentTime" style="text-align: right; font-size: 14px; color: blue; font-weight: bold; margin-bottom: 10px;"></div>
 
-    <div id="textoIntervalo" style="font-size: 11px; text-align: right; color: #808080;"></div>
+    <div id="textInterval" style="font-size: 11px; text-align: right; color: #808080;"></div>
+
+    <label for="orderSelector">Order by:</label>
+    <select id="orderSelector" onchange="fetchDataAndUpdateTable()">
+        <option value="name">Name</option>
+        <option value="next_ping">Next check</option>
+        <option value="last_ping">Last check</option>
+        <option value="n_pings"># Pings</option>
+        <option value="last_duration">Running time</option>
+    </select>
+
+    <button onclick="toggleOrder()">&#9650;  &#9660;</button>
 
     <table id="dataTable">
         <thead>
             <tr>
-               <th onclick="sortTable(0)">Name</th>
+                <th>Name</th>
                 <th>Next in:</th>
                 <th>Next check</th>
                 <th>Last was:<br>(time ago)</th>
@@ -87,10 +98,18 @@
 
     <script>
 
-        var intervalo_refresco = 5000;  // indicar aqui el intervalo de refresco de los datos que se desea (recomendable no inferior a 5 segundos)
-        var intervaloEnSegundos = intervalo_refresco / 1000;
-        var textoIntervalo = document.getElementById('textoIntervalo');
-        textoIntervalo.textContent = 'data updated every ' + intervaloEnSegundos + ' seconds';
+        var refresh_interval = 5000;  // DATA UPDATE INTERVAL IN MS
+        var intervalInSeconds = refresh_interval / 1000;
+        var textInterval = document.getElementById('textInterval');
+        textInterval.textContent = 'Information updated every ' + intervalInSeconds + ' seconds';
+
+        var sortOrderAscending = true;  
+
+        function toggleOrder() {
+            // Cambia la dirección del orden al hacer clic en el botón
+            sortOrderAscending = !sortOrderAscending;
+            fetchDataAndUpdateTable();
+        }
 
         function formatDate(dateString) {
             var options = { 
@@ -99,18 +118,17 @@
                 year: '2-digit', 
                 hour: '2-digit', 
                 minute: '2-digit', 
-                second: '2-digit', 
-                timeZone: 'Europe/Madrid'
+                second: '2-digit'
             };
 
-            return new Date(dateString).toLocaleString('es-ES', options);
+            return new Date(dateString).toLocaleString(undefined, options);
         }
 
-        function formatElapsedTime(elapsedTime) {
-            var days = Math.floor(elapsedTime / (24 * 3600));
-            var hours = Math.floor((elapsedTime % (24 * 3600)) / 3600);
-            var minutes = Math.floor((elapsedTime % 3600) / 60);
-            var seconds = Math.floor(elapsedTime % 60);
+        function formatTime(Time) {
+            var days = Math.floor(Time / (24 * 3600));
+            var hours = Math.floor((Time % (24 * 3600)) / 3600);
+            var minutes = Math.floor((Time % 3600) / 60);
+            var seconds = Math.floor(Time % 60);
 
             var formattedTime = '';
 
@@ -126,83 +144,65 @@
                 formattedTime += minutes + 'm ';
             }
 
-            // Muestra segundos solo si el tiempo es inferior a 1 hora
-            if (elapsedTime < 3600) {
+            if (Time < 3600) {
                 formattedTime += seconds + 's';
             }
 
             return formattedTime.trim();
-        }
-
-        function formatTimeUntilNextEvent(timeUntilNextEvent) {
-            
-            var days = Math.floor(timeUntilNextEvent / (24 * 3600));
-            var hours = Math.floor((timeUntilNextEvent % (24 * 3600)) / 3600);
-            var minutes = Math.floor((timeUntilNextEvent % 3600) / 60);
-            var seconds = Math.floor(timeUntilNextEvent % 60);
-
-            var formattedTime = '';
-
-            if (days > 0) {
-                formattedTime += days + 'd ';
-            }
-
-            if (hours > 0 || days > 0) {
-                formattedTime += hours + 'h ';
-            }
-
-            if (minutes > 0 || hours > 0 || days > 0) {
-                formattedTime += minutes + 'm ';
-            }
-
-            // Muestra segundos solo si el tiempo es inferior a 1 hora
-            if (timeUntilNextEvent < 3600) {
-                formattedTime += seconds + 's';
-            }
-
-            return formattedTime.trim();
-        }
-
-        function sortTable(columnIndex) {
-            var table, rows, switching, i, x, y, shouldSwitch;
-            table = document.querySelector("#dataTable");
-            switching = true;
-
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-
-                for (i = 1; i < rows.length - 1; i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("td")[columnIndex];
-                    y = rows[i + 1].getElementsByTagName("td")[columnIndex];
-
-                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                        shouldSwitch = true;
-                        break;
-                    }
-                }
-
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                }
-            }
         }
 
         function fetchDataAndUpdateTable() {
             var httpRequest = new XMLHttpRequest();
-            var key = "tkYKFVcRKTR5X8-j_UoYB7zAhz5uBuav"; // Clave API READ-ONLY
+            var key = "tkYKFVcRKTR5X8-j_UoYB7zAhz5uBuav";    // PLACE HERE YOUR healthchecks.io project READ-ONLY API KEY //
 
             httpRequest.onreadystatechange = function() {
                 if (httpRequest.readyState === 4 && httpRequest.status === 200) {
                     var jsonData = JSON.parse(httpRequest.responseText);
                     var tableBody = document.getElementById("jsonTableBody");
-                    tableBody.innerHTML = ''; // Limpia las filas existentes
+                    tableBody.innerHTML = '';
 
-                    // Ordena el array por el nombre antes de mostrarlo
+                    // Obtén la opción seleccionada del selector
+                    var orderSelected = document.getElementById("orderSelector").value;
+
                     jsonData.checks.sort(function(a, b) {
-                        return a.name.localeCompare(b.name);
+                        var comparison = 0;
+                        if (orderSelected === 'name') {
+                            comparison = a.name.localeCompare(b.name);
+                        } else if (orderSelected === 'last_ping') {
+                               if (a.last_ping !== undefined && b.last_ping !== undefined) {
+                                  comparison = a.last_ping.localeCompare(b.last_ping);
+                               } else if (a.last_ping === undefined && b.last_ping !== undefined) {
+                                  comparison = sortOrderAscending ? 1 : -1;
+                               } else if (a.last_ping !== undefined && b.last_ping === undefined) {
+                                  comparison = sortOrderAscending ? -1 : 1;
+                                }
+                        } else if (orderSelected === 'next_ping') {
+                               if (a.next_ping !== undefined && b.next_ping !== undefined) {
+                                  comparison = a.next_ping.localeCompare(b.next_ping);
+                               } else if (a.next_ping === undefined && b.next_ping !== undefined) {
+                                  comparison = sortOrderAscending ? 1 : -1;
+                               } else if (a.next_ping !== undefined && b.next_ping === undefined) {
+                                  comparison = sortOrderAscending ? -1 : 1;
+                                }
+                        } else if (orderSelected === 'n_pings') {
+                               if (a.n_pings !== undefined && b.n_pings !== undefined) {
+                                  comparison = a.n_pings - b.n_pings;
+                               } else if (a.n_pings === undefined && b.n_pings !== undefined) {
+                                  comparison = sortOrderAscending ? 1 : -1;
+                               } else if (a.n_pings !== undefined && b.n_pings === undefined) {
+                                  comparison = sortOrderAscending ? -1 : 1;
+                                }
+                        }   else if (orderSelected === 'last_duration') {
+                               if (a.last_duration !== undefined && b.last_duration !== undefined) {
+                                  comparison = a.last_duration - b.last_duration;
+                               } else if (a.last_duration === undefined && b.last_duration !== undefined) {
+                                  comparison = sortOrderAscending ? 1 : -1;
+                               } else if (a.last_duration !== undefined && b.last_duration === undefined) {
+                                  comparison = sortOrderAscending ? -1 : 1;
+                        }
+                      }
+
+                        return sortOrderAscending ? comparison : -comparison;
                     });
 
                     jsonData.checks.forEach(function(check) {
@@ -222,35 +222,36 @@
 
                         row.appendChild(nameCell);
                         
-                        // Celdas de Next in y Next check van primero
+                        const options = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
                         var nextCheckCell = document.createElement("td");
                         var nextPingCell = document.createElement("td");
 
                         if (check.timeout && check.timeout > 300 * 24 * 3600) {
-                            // Si el period, check schedule es mayor que 300 días, no se muestra nada en estas celdas
+                            
                             nextPingCell.textContent = " ";
                             nextCheckCell.textContent = " ";
                         } else {
                             var nextPingDate = new Date(check.next_ping);
                             var timeUntilNextEvent = (nextPingDate.getTime() - Date.now()) / 1000;
-                            nextPingCell.textContent = formatTimeUntilNextEvent(timeUntilNextEvent);
+                            nextPingCell.textContent = formatTime(timeUntilNextEvent);
                             
-                            // Reemplaza la fecha según las condiciones
+                            
                             if (nextPingDate.toDateString() === new Date().toDateString()) {
-                                nextCheckCell.textContent = "Today, " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Today, " + nextPingDate.toLocaleTimeString(undefined, options);
                             } else if (nextPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
-                                nextCheckCell.textContent = "Tomorrow, " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Tomorrow, " + nextPingDate.toLocaleTimeString(undefined, options);
                             } else if (nextPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
-                                nextCheckCell.textContent = "Yesterday, " + nextPingDate.toLocaleTimeString();
+                                nextCheckCell.textContent = "Yesterday, " + nextPingDate.toLocaleTimeString(undefined, options);
                             } else {
                                 nextCheckCell.textContent = formatDate(check.next_ping);
                             }
-                            // Si el status en down, para que no aparezca una fecha tipo 1/1/1970 en Next Check, lo dejo en blanco y pinto de rojo
+                           
                             if (check.status === 'down') {
                                nextCheckCell.textContent = " ";
                                nextCheckCell.classList.add('status-down');
                             }
-                            // Colorea en naranja la columna "Next in" si está en estado grace y en rojo y escribe down si está en estado down
+                           
                             if (check.status === 'grace') {
                                 nextPingCell.classList.add('status-grace');
                                 nextPingCell.textContent = " ";
@@ -264,23 +265,23 @@
                         row.appendChild(nextPingCell);
                         row.appendChild(nextCheckCell);
 
-                        // Celda para el tiempo transcurrido (Last was)
+                     
                         var elapsedTimeCell = document.createElement("td");
-                        elapsedTimeCell.textContent = check.last_ping ? formatElapsedTime((Date.now() - new Date(check.last_ping).getTime()) / 1000) : " ";
+                        elapsedTimeCell.textContent = check.last_ping ? formatTime((Date.now() - new Date(check.last_ping).getTime()) / 1000) : " ";
                         row.appendChild(elapsedTimeCell);
 
-                        // Celda centrada para la fecha (Last check)
+           
                         var lastPingCell = document.createElement("td");
                         var lastPingDate = check.last_ping ? new Date(check.last_ping) : null;
 
-                        // Reemplaza la fecha según las condiciones
+        
                         if (lastPingDate) {
                             if (lastPingDate.toDateString() === new Date().toDateString()) {
-                                lastPingCell.textContent = "Today, " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Today, " + lastPingDate.toLocaleTimeString(undefined, options);
                             } else if (lastPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
-                                lastPingCell.textContent = "Tomorrow, " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Tomorrow, " + lastPingDate.toLocaleTimeString(undefined, options);
                             } else if (lastPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
-                                lastPingCell.textContent = "Yesterday, " + lastPingDate.toLocaleTimeString();
+                                lastPingCell.textContent = "Yesterday, " + lastPingDate.toLocaleTimeString(undefined, options);
                             } else {
                                 lastPingCell.textContent = formatDate(check.last_ping);
                             }
@@ -289,14 +290,14 @@
                         lastPingCell.style.textAlign = "center"; // Centra el texto
                         row.appendChild(lastPingCell);
 
-                        // Celda para el número de pings
+                 
                         var numPingsCell = document.createElement("td");
                         numPingsCell.textContent = check.n_pings !== undefined ? check.n_pings : " ";
                         row.appendChild(numPingsCell);
 
-                        // Celda para la duración en minutos y segundos
+             
                         var durationCell = document.createElement("td");
-                        durationCell.textContent = check.last_duration !== undefined ? formatElapsedTime(check.last_duration) : " ";
+                        durationCell.textContent = check.last_duration !== undefined ? formatTime(check.last_duration) : "";
                         row.appendChild(durationCell);
 
                         tableBody.appendChild(row);
@@ -310,21 +311,21 @@
             httpRequest.send();
         }
 
-        function mostrarHoraActual() {
-            var horaActualElemento = document.getElementById("horaActual");
-            var horaActual = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit'});
-            horaActualElemento.textContent = "Time: " + horaActual;
+        function showcurrentTime() {
+            var currentTimeElement = document.getElementById("currentTime");
+            var currentTime = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            currentTimeElement.textContent = "Time: " + currentTime;
         }
 
-        // Muestra la hora actual inicialmente
-        mostrarHoraActual();
 
-        // Obtiene y actualiza los datos inicialmente
+        showcurrentTime();
+
         fetchDataAndUpdateTable();
 
-        // Establece un intervalo para actualizar los datos cada x segundos definidos en intervalo refresco
-        setInterval(fetchDataAndUpdateTable, intervalo_refresco);
-        setInterval(mostrarHoraActual, intervalo_refresco);
+       
+        setInterval(fetchDataAndUpdateTable, refresh_interval);
+        setInterval(showcurrentTime, refresh_interval);
+
     </script>
 
 </body>
