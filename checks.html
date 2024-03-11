@@ -70,31 +70,22 @@
         font-size: 11px; 
         font-weight: bold; 
         text-align: left;
-        position: relative;
-        left: 10px;
         margin-bottom: 0;
     }
        #currentTime, #textInterval {
         text-align: right;
-        position: relative;
         right: 10px;
         margin-bottom: 2px;  // se redujo el margen inferior
         margin-top: 2px;     // se redujo el margen superior
     }
-       #timeAndOrderContainer {
-        display: flex;
-        margin-top: 5px;  // ajusta según sea necesario
-    }
+      
     </style>
 </head>
 <body>
 
     <h1>HealthChecks.io dashboard</h1>
-
-    <div id="timeAndOrderContainer">
         
         <div id="currentTime" style="text-align: right; font-size: 14px; color: #686868; font-weight: bold; margin-bottom: 5px;"></div>
-        <br>
         <div id="textInterval" style="font-size: 11px; text-align: right; color: #808080;"></div>
 
         <label for="orderSelector">Order by:</label>
@@ -107,8 +98,6 @@
         </select>
 
         <button onclick="toggleOrder()">&#9650; &#9660;</button>
-
-    </div>
 
     <table id="dataTable">
         <thead>
