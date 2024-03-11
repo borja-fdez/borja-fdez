@@ -76,25 +76,35 @@
         margin-bottom: 2px;  // se redujo el margen inferior
         margin-top: 2px;     // se redujo el margen superior
     }
+       #timeAndOrderContainer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 5px;  // ajusta según sea necesario
+    }
     </style>
 </head>
 <body>
 
     <h1>HealthChecks.io dashboard</h1>
 
-    <div id="currentTime" style="text-align: right; font-size: 14px; color: #686868; font-weight: bold; margin-bottom: 5px;"></div>
-    <div id="textInterval" style="font-size: 11px; text-align: right; color: #808080;"></div>
+    <div id="timeAndOrderContainer">
+        
+        <div id="currentTime" style="text-align: right; font-size: 14px; color: #686868; font-weight: bold; margin-bottom: 5px;"></div>
+        <div id="textInterval" style="font-size: 11px; text-align: right; color: #808080;"></div>
 
-    <label for="orderSelector">Order by:</label>
-    <select id="orderSelector" onchange="fetchDataAndUpdateTable()">
-        <option value="name">Name</option>
-        <option value="next_ping">Next check</option>
-        <option value="last_ping">Last check</option>
-        <option value="n_pings"># Pings</option>
-        <option value="last_duration">Running time</option>
-    </select>
+        <label for="orderSelector">Order by:</label>
+        <select id="orderSelector" onchange="fetchDataAndUpdateTable()">
+           <option value="name">Name</option>
+           <option value="next_ping">Next check</option>
+           <option value="last_ping">Last check</option>
+           <option value="n_pings"># Pings</option>
+           <option value="last_duration">Running time</option>
+        </select>
 
-    <button onclick="toggleOrder()">&#9650; &#9660;</button>
+        <button onclick="toggleOrder()">&#9650; &#9660;</button>
+
+    </div>
 
     <table id="dataTable">
         <thead>
