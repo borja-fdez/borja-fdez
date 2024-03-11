@@ -87,8 +87,6 @@
 
     <button onclick="toggleOrder()">&#9650; &#9660;</button>
 
-   
-
     <table id="dataTable">
         <thead>
             <tr>
@@ -302,14 +300,11 @@
                             }
                         }
 
-                        // lastPingCell.style.textAlign = "center"; //
                         row.appendChild(lastPingCell);
-
                  
                         var numPingsCell = document.createElement("td");
                         numPingsCell.textContent = check.n_pings !== undefined ? check.n_pings : " ";
                         row.appendChild(numPingsCell);
-
              
                         var durationCell = document.createElement("td");
                         durationCell.textContent = check.last_duration !== undefined ? formatTime(check.last_duration) : "";
@@ -319,7 +314,6 @@
                     });
                 }
             };
-
 
             httpRequest.open("GET", "https://healthchecks.io/api/v3/checks/");
             httpRequest.setRequestHeader("X-API-Key", key);
@@ -334,12 +328,9 @@
 
 
         showcurrentTime();
-
-
         fetchDataAndUpdateTable();
 
         setInterval(updateIntervalCountdown, refresh_interval); 
-       
         setInterval(fetchDataAndUpdateTable, refresh_interval);
         setInterval(showcurrentTime, 1000);
 
