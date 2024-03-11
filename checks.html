@@ -7,11 +7,12 @@
     <style>
         body {
             font-family: 'Aptos', 'Helvetica Neue', Arial, sans-serif;
-            margin: 5px;    // antes era 10
+            margin: 10px;   
         }
         h1 {
             text-align: center;
             margin-top: 10px;    // antes era 20
+            margin-bottom: 5px;
         }
         table {
             width: 100%;
@@ -70,7 +71,7 @@
         font-size: 11px; 
         font-weight: bold; 
         text-align: left;
-        margin-bottom: 2;
+        margin-bottom: 4px;
     }      
     </style>
 </head>
@@ -78,7 +79,7 @@
 
     <h1>HealthChecks.io dashboard</h1>
         
-        <div id="currentTime" style="text-align: right; font-size: 14px; color: #686868; font-weight: bold; margin-bottom: 2px; margin-top: 2px;"></div>
+        <div id="currentTime" style="text-align: center; font-size: 18px; color: #686868; font-weight: bold; margin-bottom: 2px; margin-top: 2px;"></div>
       
         <label for="orderSelector">Order by:</label>
         <select id="orderSelector" onchange="fetchDataAndUpdateTable()">
@@ -91,7 +92,7 @@
 
         <button onclick="toggleOrder()">&#9650; &#9660;</button>
 
-      <div id="textInterval" style="font-size: 11px; text-align: left; color: #808080; margin-bottom: 2px; margin-top: 2px;"></div>
+      <div id="textInterval" style="font-size: 11px; text-align: left; color: #808080; margin-bottom: 1px; margin-top: 2px;"></div>
 
     <table id="dataTable">
         <thead>
