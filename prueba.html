@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkbox Redondos</title>
+    <style>
+        .round-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<label>Selecciona el intervalo de actualización:</label>
+<br>
+<input type="checkbox" class="round-checkbox" id="interval5" onclick="updateRefreshInterval(5)">
+<label for="interval5">5 segundos</label>
+<br>
+<input type="checkbox" class="round-checkbox" id="interval10" onclick="updateRefreshInterval(10)">
+<label for="interval10">10 segundos</label>
+<br>
+<input type="checkbox" class="round-checkbox" id="interval15" onclick="updateRefreshInterval(15)">
+<label for="interval15">15 segundos</label>
+
+<script>
+    var refreshInterval = [];
+
+    function updateRefreshInterval(interval) {
+        var checkbox = document.getElementById("interval" + interval);
+        
+        if (checkbox.checked) {
+            refreshInterval.push(interval);
+        } else {
+            var index = refreshInterval.indexOf(interval);
+            if (index !== -1) {
+                refreshInterval.splice(index, 1);
+            }
+        }
+
+        console.log("Intervalos seleccionados: " + refreshInterval.join(", ") + " segundos");
+    }
+</script>
+
+</body>
+</html>
