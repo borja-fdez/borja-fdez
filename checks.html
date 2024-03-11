@@ -115,7 +115,7 @@
         
         function updateIntervalCountdown() {
             var countdown = intervalInSeconds;
-            textInterval.textContent = 'Updating data in ' + countdown + ' s';
+            textInterval.textContent = 'Data updated within ' + countdown + ' s';
 
             var countdownInterval = setInterval(function () {
                 countdown--;
@@ -123,7 +123,7 @@
                 if (countdown <= 0) {
                     clearInterval(countdownInterval);
                 } else {
-                    textInterval.textContent = 'Updating data in ' + countdown + ' s';
+                    textInterval.textContent = 'Data updated within ' + countdown + ' s';
                 }
             }, 1000);
         }
