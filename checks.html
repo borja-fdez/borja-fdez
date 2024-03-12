@@ -261,8 +261,6 @@
                                 nextCheckCell.textContent = "Today, " + nextPingDate.toLocaleTimeString(undefined, options);
                             } else if (nextPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
                                 nextCheckCell.textContent = "Tomorrow, " + nextPingDate.toLocaleTimeString(undefined, options);
-                            } else if (nextPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
-                                nextCheckCell.textContent = "Yesterday, " + nextPingDate.toLocaleTimeString(undefined, options);
                             } else {
                                 nextCheckCell.textContent = formatDate(check.next_ping);
                             }
@@ -298,8 +296,6 @@
                         if (lastPingDate) {
                             if (lastPingDate.toDateString() === new Date().toDateString()) {
                                 lastPingCell.textContent = "Today, " + lastPingDate.toLocaleTimeString(undefined, options);
-                            } else if (lastPingDate.toDateString() === new Date(new Date().getTime() + 24 * 3600 * 1000).toDateString()) {
-                                lastPingCell.textContent = "Tomorrow, " + lastPingDate.toLocaleTimeString(undefined, options);
                             } else if (lastPingDate.toDateString() === new Date(new Date().getTime() - 24 * 3600 * 1000).toDateString()) {
                                 lastPingCell.textContent = "Yesterday, " + lastPingDate.toLocaleTimeString(undefined, options);
                             } else {
