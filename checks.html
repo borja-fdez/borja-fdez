@@ -108,7 +108,7 @@
         </thead>
         <tbody id="jsonTableBody"></tbody>
     </table>
-    <note> <b><u>Note:</u></b> If the expected time between checks (check schedule, period) exceeds 300 days, <b>> 300 days</b> is displayed in <b>Next check</b> and <b>Next within</b>.</note>
+    <note> <b><u>Note:</u></b> If the expected time between checks (check schedule, period) exceeds 300 days, <u>nothing</u> is displayed in <b>Next check</b> and <b>Next within</b>.</note>
 
 
     <script>
@@ -249,8 +249,8 @@
 
                         if (check.timeout && check.timeout > 300 * 24 * 3600) {
                             
-                            nextPingCell.textContent = "> 300 days";
-                            nextCheckCell.textContent = "> 300 days";
+                            nextPingCell.textContent = "";
+                            nextCheckCell.textContent = "";
                         } else {
                             var nextPingDate = new Date(check.next_ping);
                             var timeUntilNextEvent = (nextPingDate.getTime() - Date.now()) / 1000;
